@@ -16,6 +16,7 @@ def month_index(month):
     """
     month_nb = {'Janvier': 1,
                 'Fevrier': 2,
+                'Février': 2,
                 'Mars': 3,
                 'Avril': 4,
                 'Mai': 5,
@@ -25,7 +26,8 @@ def month_index(month):
                 'Septembre': 9,
                 'Octobre': 10,
                 'Novembre': 11,
-                'Décembre': 12,
+                'Decembre': 12,
+                'Décembre': 12
                 }
     return month_nb[month]
 
@@ -36,6 +38,14 @@ def available_months(year):
     :param year: -
     :return: a list of the names of the available months in the directory eg. ['Janvier', 'Fevrier']
     """
+    month_list = ["Janvier", "Fevrier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre",
+                  "Octobre", "Novembre", "Decembre", "Décembre"]
+    available = []
+    for month in month_list:
+        file_path = Path(f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods")
+        if file_path.is_file():
+            available += month
+    return available
 
 
 def data_extraction(year, month):
@@ -57,6 +67,10 @@ def data_extraction(year, month):
             month = 'Fevrier'
         elif month == 'Fevrier':
             month = 'Février'
+        elif month == 'Décembre':
+            month = 'Decembre'
+        elif month == 'Decembre':
+            month = 'Décembre'
         file_path = Path(f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods")
     xls = pd.ExcelFile(file_path)
     df2 = pd.read_excel(xls, 'Feuille2', engine="odf")
