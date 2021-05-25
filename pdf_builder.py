@@ -1,5 +1,8 @@
 from weasyprint import HTML
 from jinja2 import Environment, FileSystemLoader
+from pathlib import Path
+# Directory where bills will be generated (into their proper folder according to year/month)
+from config.infos_script import output_directory
 
 """
 The main job of this script is the generation of the pdf documents, according to the document_type that is asked and the
@@ -16,7 +19,7 @@ def pdf_build(template_vars, document_type, output_name):
     """
     file_html = f"templates/{document_type}_template.html"
     file_css = f"templates/{document_type}_style.css"
-    pdf_name = output_name
+    pdf_name = Path(output_directory + output_name)
 
     env = Environment(loader=FileSystemLoader('.'))
     template = env.get_template(file_html)

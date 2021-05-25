@@ -1,5 +1,5 @@
 import pandas as pd
-import os.path
+from pathlib import Path
 # The path to the directory containing the data
 from config.infos_script import path_to_data
 
@@ -49,15 +49,15 @@ def data_extraction(year, month):
     :return: a pandas dataframe containing every useful information for the generation of bills
     :raises FileNotFoundError: that needs to be handled in the menu if the file isn't found.
     """
-    # TODO gérer les / \ selon linux windows (vérifier s'il faut faire ça)
-    file_path = f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods"
-    if not os.path.isfile(file_path):
+    # TODO error handling in menu
+    file_path = Path(f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods")
+    if not file_path.is_file():
         # Gestion des erreurs d'accents dans le nommage des fichiers
         if month == 'Février':
             month = 'Fevrier'
         elif month == 'Fevrier':
             month = 'Février'
-        file_path = f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods"
+        file_path = Path(f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods")
     xls = pd.ExcelFile(file_path)
     df2 = pd.read_excel(xls, 'Feuille2', engine="odf")
     return df2
