@@ -75,3 +75,13 @@ def data_extraction(year, month):
     xls = pd.ExcelFile(file_path)
     df2 = pd.read_excel(xls, 'Feuille2', engine="odf")
     return df2
+
+
+def student_extraction():
+    """
+
+    :return: a pandas database containing students name, surname, address and sex
+    """
+    file_path = Path(f"{path_to_data}Infos_élèves.ods")
+    df = pd.read_excel(file_path)
+    return df
