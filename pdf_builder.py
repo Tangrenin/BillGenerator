@@ -16,6 +16,8 @@ def pdf_build(template_vars, document_type, output_name):
     :param template_vars: dictionary that contain all variables needed for the template rendering
     :param document_type: string 'facture' or 'attestation' depending on what document should be created
     :param output_name: the name of the pdf file to be created. WITHOUT the extension '.pdf'
+    output_name is actually the relative path from the output_directory + the file name if there are any subfolders
+    inside the output_directory.
     """
     file_html = f"templates/{document_type}_template.html"
     file_css = f"templates/{document_type}_style.css"
