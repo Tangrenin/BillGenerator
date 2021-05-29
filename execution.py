@@ -1,10 +1,12 @@
 from pdf_builder import pdf_build
-from data_utils import data_extraction, available_months, student_extraction
+from data_utils import data_extraction, available_months, student_extraction, month_index
 from types_utils import Address
 from datetime import date
 import config.infos_yann as yannou
 
 current_date = date.today()
+
+
 # TODO print students whose data have been unused for each month when processing
 
 
@@ -35,22 +37,25 @@ def find_student(student, data):
 
 
 def bill_number_gen(year, month, student_number):
-    month_nb = {'Janvier': '01',
-                'Fevrier': '02',
-                'Février': '02',
-                'Mars': '03',
-                'Avril': '04',
-                'Mai': '05',
-                'Juin': '06',
-                'Juillet': '07',
-                'Aout': '08',
-                'Septembre': '09',
-                'Octobre': '10',
-                'Novembre': '11',
-                'Decembre': '12',
-                'Décembre': '12'}
     # zfill fills the student_number with 0's so that there are always 2 digits
-    return str(year) + month_nb[month] + str(student_number).zfill(2)
+    return str(year) + str(month_index(month)).zfill(2) + str(student_number).zfill(2)
+
+
+def warning(unregistered_students, unfound_students):
+    if len(unregistered_students) > 0:
+        print("Attention, les élèves suivants ont été détectés dans les tableaux d'heures de cours mais ne se trouvent "
+              "pas dans la base de données")
+        print(unregistered_students)
+        print("Vérifiez que ce sont bien des étudiants qui n'ont pas eu de cours pendant cette période")
+        print("Sinon, c'est qu'il y a une faute pour ces élèves\n")
+
+    if len(unfound_students) > 0:
+        print("Attention, les élèves suivants ont été détectés dans la base de données mais ne se trouvent "
+              "pas dans les tableaux d'heures de cours")
+        print(unfound_students)
+        print("Vérifiez que ce sont bien des étudiants qui n'ont pas eu de cours pendant cette période")
+        print("S'ils ont arrêté et reçu leur attestation, songez à les supprimer de Infos_élèves")
+        print("Sinon, il y a une faute pour ces élèves\n")
 
 
 def gen_all_factures(document_type, year, month):
@@ -59,10 +64,8 @@ def gen_all_factures(document_type, year, month):
     - fetches the appropriate data
     - puts together the variables that will be needed for building the pdf
     - calls the pdf builder pdf_build with following args :
-    TODO complete doc
-    template_vars :
-    output_name :
-
+    template_vars : a dict containing all necessary informations to build the document
+    output_name : the concatenation of the path from the output folder and the file name
     :param document_type: -
     :param month: month about which bills should be generated
     :param year: year about which bills should be generated
@@ -74,54 +77,53 @@ def gen_all_factures(document_type, year, month):
     data = data.set_index("Informations")
 
     unregistered_students = {candidate for candidate in data}
+    unfound_students = set()
     for index, student in students.iterrows():
         # We look for the corresponding student in the data sheet
-        # TODO find_student peut renvoyer None, l'étudiant de la DB n'a pas été trouvé. Il faut prévenir l'user
         student_info = find_student(student, data)
-        # Since we found the student, he is registered in the database and can be removed from the following set
-        unregistered_students.remove(student_info.name)
+        if student_info is not None:
+            # Since we found the student, he is registered in the database and can be removed from the following set
+            unregistered_students.remove(student_info.name)
 
-        # Generate bill identification
-        bill_number = bill_number_gen(year, month, index)
+            # Generate bill identification
+            bill_number = bill_number_gen(year, month, index)
 
-        # puts together the necessary variables
-        # TODO gérer output_name
-        output_name = ''
-        template_vars = {
-            "month": month,
-            "year": year,
-            # Generated infos
-            "bill_gen_date": current_date,
-            "bill_number": bill_number,
-            # Students database info
-            "student_firstname": student.Prénom,
-            "student_surname": student.Nom,
-            "student_sex": student["Sexe (F/M)"],
-            "student_address": Address(street=student.Rue,
-                                       zipcode=student["Code Postal"],
-                                       city=student.Ville,
-                                       country=student.Pays,
-                                       other=student["Complément d'adresse"]),
-            # Student monthly bills info
-            "nb_hours": student_info["Nbre heures donné"],
-            "hourly_rate": student_info["Tarif Horaire"],
-            "already_paid": student_info["Nbre heures payé"],
-            "left_to_pay": student_info["Reste à payer"],
-            "CESU": student_info["Payé en CESU"],
-            # Teacher info
-            "teacher_firstname": yannou.firstname,
-            "teacher_surname": yannou.surname,
-            "teacher_address": yannou.adresse,
-            "teacher_siret": yannou.siret,
-            "teacher_SAP": yannou.SAP}
+            # puts together the necessary variables
+            file_name = "Fac_" + student.Nom.replace(' ', '') + student.Prénom + f"-{month_index(month)}_{year}"
+            output_name = f"{document_type}/{year}/{month}/{file_name}"
+            template_vars = {
+                "month": month,
+                "year": year,
+                # Generated infos
+                "bill_gen_date": current_date,
+                "bill_number": bill_number,
+                # Students database info
+                "student_firstname": student.Prénom,
+                "student_surname": student.Nom,
+                "student_sex": student["Sexe (F/M)"],
+                "student_address": Address(street=student.Rue,
+                                           zipcode=student["Code Postal"],
+                                           city=student.Ville,
+                                           country=student.Pays,
+                                           other=student["Complément d'adresse"]),
+                # Student monthly bills info
+                "nb_hours": student_info["Nbre heures donné"],
+                "hourly_rate": student_info["Tarif Horaire"],
+                "already_paid": student_info["Nbre heures payé"],
+                "left_to_pay": student_info["Reste à payer"],
+                "CESU": student_info["Payé en CESU"],
+                # Teacher info
+                "teacher_firstname": yannou.firstname,
+                "teacher_surname": yannou.surname,
+                "teacher_address": yannou.adresse,
+                "teacher_siret": yannou.siret,
+                "teacher_SAP": yannou.SAP}
 
-        # calls the pdf builder
-        pdf_build(template_vars, document_type, output_name)
-    print("Attention, les élèves suivants ont été détectés dans les tableaux d'heures de cours mais ne se trouvent pas"
-          "dans la base de données")
-    print(unregistered_students)
-    print("Cela peut être des étudiants qui ont arrêté les cours et ont été supprimés de la base de données")
-    print("Ou bien une faute dans l'orthographe d'un nom d'élève a pu être commise dans un fichier d'heures de cours")
+            # calls the pdf builder
+            pdf_build(template_vars, document_type, output_name)
+        else:  # The student hasn't been found in the billing sheets
+            unfound_students.add(f"{student.Prénom} {student.Nom}")
+    warning(unregistered_students, unfound_students)
 
 
 def gen_all_attest(document_type, year, month):
@@ -129,7 +131,9 @@ def gen_all_attest(document_type, year, month):
     generates all attestations for a given year
     - fetches the appropriate data
     - puts together the variables that will be needed for building the pdf
-    - calls the pdf builder
+    - calls the pdf builder pdf_build with following args :
+    template_vars : a dict containing all necessary informations to build the document
+    output_name : the concatenation of the path from the output folder and the file name
     :param document_type: -
     :param month: unused parameter
     :param year: year about which attestations should be generated
@@ -144,9 +148,9 @@ def gen_all_attest(document_type, year, month):
     students = student_extraction()
 
     for student in students:
-
         # puts together the necessary variables
-        output_name = ''
+        file_name = "Attest_" + student.Nom.replace(' ', '') + student.Prénom + f"-{year}"
+        output_name = f"{document_type}/{year}/{file_name}"
         template_vars = {
             "year": year,
             # Generated infos
