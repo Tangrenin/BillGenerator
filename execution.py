@@ -7,9 +7,6 @@ import config.infos_yann as yannou
 current_date = date.today()
 
 
-# TODO print students whose data have been unused for each month when processing
-
-
 def find_student(student, data):
     """
     Finds a student from the database in the data dataframe, and returns the column containing relevant informations
@@ -109,9 +106,9 @@ def gen_all_factures(document_type, year, month):
                 # Student monthly bills info
                 "nb_hours": student_info["Nbre heures donné"],
                 "hourly_rate": student_info["Tarif Horaire"],
-                "already_paid": student_info["Nbre heures payé"],
+                "total_amount": student_info["Donné"],
+                "already_paid": student_info["Payé"],
                 "left_to_pay": student_info["Reste à payer"],
-                "CESU": student_info["Payé en CESU"],
                 # Teacher info
                 "teacher_firstname": yannou.firstname,
                 "teacher_surname": yannou.surname,
@@ -147,7 +144,33 @@ def gen_all_attest(document_type, year, month):
         data[m] = data[m].set_index("Informations")
     students = student_extraction()
 
-    for student in students:
+    # Sets to handle missing students from the billing sheets or the database
+    unregistered_students = set()
+    unfound_students = {f"{student.Prénom} {student.Nom}" for i, student in students.iterrows()}
+
+    for index, student in students.iterrows():
+        # Initialization of the yearly and monthly variables
+        total_paid = 0
+        total_cesu = 0
+        monthly_nb_hours = {}
+        monthly_hour_rate = {}
+        monthly_paid = {}
+
+        for m in months:
+            # We load in the set all names in the billing sheet and will remove those that are found
+            unregistered_students.update({candidate for candidate in data[m]})
+            student_info = find_student(student, data[m])
+            if student_info is not None:
+                # We found the student, he is registered in the database and can be removed from the following sets
+                unfound_students.remove(f"{student.Prénom} {student.Nom}")
+                unregistered_students.remove(student_info.name)
+
+                total_paid += student_info["Payé"]
+                total_cesu += student_info["Payé en CESU"]
+                monthly_nb_hours[m] = student_info["Nbre heures payé"]
+                monthly_hour_rate[m] = student_info["Tarif Horaire"]
+                monthly_paid[m] = student_info["Payé"]
+
         # puts together the necessary variables
         file_name = "Attest_" + student.Nom.replace(' ', '') + student.Prénom + f"-{year}"
         output_name = f"{document_type}/{year}/{file_name}"
@@ -164,6 +187,12 @@ def gen_all_attest(document_type, year, month):
                                        city=student.Ville,
                                        country=student.Pays,
                                        other=student["Complément d'adresse"]),
+            # Student yearly/monthly bills info
+            "total_paid": total_paid,
+            "total_cesu": total_cesu,
+            "monthly_nb_hours": monthly_nb_hours,
+            "monthly_hour_rate": monthly_hour_rate,
+            "monthly_paid": monthly_paid,
             # Teacher info
             "teacher_firstname": yannou.firstname,
             "teacher_surname": yannou.surname,
@@ -173,6 +202,7 @@ def gen_all_attest(document_type, year, month):
 
         # calls the pdf builder
         pdf_build(template_vars, document_type, output_name)
+    warning(unregistered_students, unfound_students)
 
 
 def execute(document_type, year, month):
