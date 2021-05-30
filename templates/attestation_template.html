@@ -1,10 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html lang="fr">
 
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+
+<body>
+  <header>
+    <div>
+      Entreprise {{ teacher_surname|upper }} {{ teacher_firstname|upper }} agréé pour les services à la personne. <br>
+      Adresse de l'organisme : <br>
+      {% if teacher_address.other %}
+      {{ teacher_address.other }} <br>
+      {% endif %}
+      {{ teacher_address.street }} <br>
+      {{ teacher_address.zipcode }} {{ teacher_address.city}} <br>
+      Siret : {{ teacher_siret }}
+    </div>
+    <div>
+      <span>
+        {{ student_sex|civility}} {{ student_surname|upper}} {{student_firstname }}
+      </span> <br>
+      {% if student_address.other %}
+      {{ student_address.other }} <br>
+      {% endif %}
+      {{ student_address.street }} <br>
+      {{ student_address.zipcode }} {{ student_address.city}} <br>
+      {% if student_address.country != 'France' %}
+      {{ student_address.country }} <br>
+      {% endif %}
+    </div>
+  </header>
+  <h1>Attestation destinée au centre des impôts</h1>
+  <main>
+    <section>
+      <p>
+        Je soussigné M. {{ teacher_firstname }} {{ teacher_surname }} certifie que {{ student_sex|civility }} {{ student_firstname }} {{ student_surname }} a bénéficié du service à la personne suivant : <span>Cours Particuliers à Domicile.</span>
+      </p>
+      <p>
+        En {{ year }}, sa participation représente une somme totale de : {{ total_paid|money }}, dont {{ total_cesu|money }} au titre du Cesu préfinancé*.
+      </p>
+      <ul>
+        <li>Montant total des factures de l'année : {{ total_paid|money }}</li>
+        <li>Montant toal payé en Cesu préfinancés : {{ total_cesu|money }}</li>
+      </ul>
+    </section>
+    <section>
+      <table>
+        <tr>
+          <th>Intervenant</th>
+          <th>Temps</th>
+          <th>Mois</th>
+          <th>Prix</th>
+          <th>Prix horaire</th>
+        </tr>
+        {% for month in monthly_paid.keys() %}
+        <tr>
+          <td>{{ teacher_surname|capitalize}} {{teacher_firstname|capitalize}}</td>
+          <td>{{monthly_nb_hours[month] }} heures</td>
+          <td>{{ month }} {{ year }}</td>
+          <td>{{ monthly_paid[month]|money }}</td>
+          <td>{{ monthly_hour_rate[month]|money }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </section>
+    <section>
+      <p>
+        Les sommes perçues pour financer les services à la personne sont à déduire de la valeur indiquée précédemment. La déclaration engage la responsabilité du seul contribuable.
+      </p>
+      <p>
+        * Pour les personnes utilisant le Chèque emploi service universel, seul le montant financé personnellement est déductible. Une attestation est délivrée par les établissements qui préfinancent le Cesu.
+      </p>
+      <p>
+        Fait pour valoir ce que de droit,
+      </p>
+    </section>
+  </main>
+  <footer>
+    Le {{ attest_gen_date.strftime('%d/%m/%Y') }} <br>
+    {{ teacher_firstname }} {{ teacher_surname }} auto-entrepreneur
+  </footer>
 </body>
+
 </html>
