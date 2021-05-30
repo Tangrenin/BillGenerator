@@ -9,6 +9,16 @@ containing them.
 """
 
 
+def has_address(client):
+    """
+    Check if a client from the Infos_élèves dataframe has a specified address or not
+    :param client: a pd.dataframe row
+    :return: True if an address is specified, else False
+    """
+    res = isinstance(client.Rue, str) and isinstance(client["Code Postal"], str) and isinstance(client.Ville, str)
+    return res
+
+
 def month_index(month):
     """
     :param month: month of the year
@@ -39,7 +49,6 @@ def available_months(year):
     :return: a list of the names of the available months in the directory eg. ['Janvier', 'Fevrier']
     The list is empty is no relevant file was found
     """
-    # TODO Error handling :
     month_list = ["Janvier", "Fevrier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre",
                   "Octobre", "Novembre", "Decembre", "Décembre"]
     available = []
@@ -61,7 +70,7 @@ def data_extraction(year, month):
     :return: a pandas dataframe containing every useful information for the generation of bills
     :raises FileNotFoundError: that needs to be handled in the menu if the file isn't found.
     """
-    # TODO error handling in menu
+    # TODO error handling in menu : catch a FileNotFoundError et dire ce qui n'a pas été trouvé
     file_path = Path(f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods")
     if not file_path.is_file():
         # Gestion des erreurs d'accents dans le nommage des fichiers
@@ -84,7 +93,7 @@ def client_extraction():
 
     :return: a pandas database containing students name, surname, address and sex
     """
-    # TODO error handling in menu
+    # TODO error handling in menu : catch a FileNotFoundError et dire ce qui n'a pas été trouvé
     file_path = Path(f"{path_to_data}Infos_élèves.ods")
     df = pd.read_excel(file_path)
     return df

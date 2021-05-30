@@ -3,6 +3,7 @@ from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 # Directory where bills will be generated (into their proper folder according to year/month)
 from config.infos_script import output_directory
+import re
 
 """
 The main job of this script is the generation of the pdf documents, according to the document_type that is asked and the
@@ -43,21 +44,33 @@ def is_defined(value):
     return isinstance(value, str)
 
 
-def pdf_build(template_vars, document_type, output_name):
+def pdf_build(template_vars, document_type, relative_output_path, file_name):
     """
-    generates the document of type document_type, then saves the pdf file named 'output_name.pdf',
+    generates the document of type document_type, then saves the pdf file named 'file_name.pdf',
     :param template_vars: dictionary that contain all variables needed for the template rendering
     :param document_type: string 'facture' or 'attestation' depending on what document should be created
-    :param output_name: the name of the pdf file to be created. WITHOUT the extension '.pdf'
-    output_name is actually the relative path from the output_directory + the file name if there are any subfolders
-    inside the output_directory.
+    :param relative_output_path: a string containing relative path from the output folder
+    :param file_name: the pdf file name string  without the .pdf extension
     """
-    # TODO error handling in menu : les templates sont plus là
-    # TODO error handling: vérifier que les dossiers/sous dossiers existent, sinon les créer
-    # TODO error handling : s'assurer que les path ne contiennent pas de caractères interdits
     file_html = f"templates/{document_type}_template.html"
     file_css = f"templates/{document_type}_style.css"
-    pdf_name = Path(output_directory + output_name + ".pdf")
+
+    if not Path(file_html).is_file():
+        e = FileNotFoundError()
+        e.filename = file_html
+        raise e  # TODO la catch, le nom du fichier est dans e.filename
+    if not Path(file_css).is_file():
+        e = FileNotFoundError()
+        e.filename = file_css
+        raise e  # TODO la catch, le nom du fichier est dans e.filename
+
+    # Checking a correcting if the file_name contains forbidden characters
+    file_name = re.sub(r'[<>:"/\\|?*]', '', file_name)
+
+    # Checking if the path folders and subfolders exist, else create it
+    Path(output_directory + relative_output_path).mkdir(parents=True, exist_ok=True)
+
+    pdf_name = Path(output_directory + relative_output_path + file_name + ".pdf")
 
     # loading the jinja2 environment
     env = Environment(loader=FileSystemLoader('.'))
