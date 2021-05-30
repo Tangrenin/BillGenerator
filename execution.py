@@ -1,5 +1,5 @@
 from pdf_builder import pdf_build
-from data_utils import data_extraction, available_months, client_extraction, month_index
+from data_utils import data_extraction, available_months, client_extraction, month_index, has_address
 from types_utils import Address, DuplicateStudentsError
 from datetime import date
 import config.infos_yann as yannou
@@ -35,7 +35,7 @@ def bill_number_gen(year, month, client_number):
     return str(year) + str(month_index(month)).zfill(2) + str(client_number).zfill(2)
 
 
-def warning(unregistered_students, unfound_students):
+def warning(unregistered_students, unfound_students, missing_address):
     if len(unregistered_students) > 0:
         print("Attention, les élèves suivants ont été détectés dans les tableaux d'heures de cours mais ne se trouvent "
               "pas dans la base de données")
@@ -51,10 +51,19 @@ def warning(unregistered_students, unfound_students):
         print("S'ils ont arrêté et reçu leur attestation, songez à les supprimer de Infos_élèves")
         print("Sinon, il y a une faute pour ces élèves\n")
 
+    if len(missing_address) > 0:
+        print("Les clients suivants n'ont pas d'adresse présente dans Infos_élèves.")
+        print(missing_address)
+        print("Les documents seront générés avec \"Adresse inconue\" pour adresse")
+        print("Pensez quand même à leur demander leur adresse")
+
 
 def gen_facture(year, month, client, data, document_type='facture'):
     """
-
+    Note : Calls the pdf builder pdf_build with following args :
+    template_vars : a dict containing all necessary informations to build the document
+    relative_output_path : the concatenation of the path from the output folder and the file name
+    file_name: the final pdf file name (without the extension)
     :param year: string : AAAA
     :param month: string of the month in French
     :param client: a pd.dataframe row containing client financial infos
@@ -94,7 +103,7 @@ def gen_facture(year, month, client, data, document_type='facture'):
 
     # puts together the necessary variables
     file_name = "Fac_" + client.Nom.replace(' ', '') + client.Prénom + f"-{month_index(month)}_{year}"
-    output_name = f"Factures/{year}/{month}/{file_name}"
+    relative_output_path = f"Factures/{year}/{month}/"
     template_vars = {
         "month": month,
         "year": year,
@@ -126,14 +135,17 @@ def gen_facture(year, month, client, data, document_type='facture'):
         "teacher_SAP": yannou.SAP}
 
     # calls the pdf builder
-    pdf_build(template_vars, document_type, output_name)
+    pdf_build(template_vars, document_type, relative_output_path, file_name)
 
     return registered_students, unfound_students
 
 
 def gen_attest(year, client, data, relevant_months, document_type='attestation'):
     """
-
+    Note : Calls the pdf builder pdf_build with following args :
+    template_vars : a dict containing all necessary informations to build the document
+    relative_output_path : the concatenation of the path from the output folder and the file name
+    file_name: the final pdf file name (without the extension)
     :param year: string : AAAA
     :param client: a pd.dataframe row containing client financial infos
     :param data: a dictionary of pd.dataframes containing billing infos for a month, each for a given month
@@ -163,7 +175,7 @@ def gen_attest(year, client, data, relevant_months, document_type='attestation')
 
     # puts together the necessary variables
     file_name = "Attest_" + client.Nom.replace(' ', '') + client.Prénom + f"-{year}"
-    output_name = f"Attestations/{year}/{file_name}"
+    relative_output_path = f"Attestations/{year}/"
     template_vars = {
         "year": year,
         "title": file_name,
@@ -192,7 +204,7 @@ def gen_attest(year, client, data, relevant_months, document_type='attestation')
         "teacher_SAP": yannou.SAP}
 
     # calls the pdf builder
-    pdf_build(template_vars, document_type, output_name)
+    pdf_build(template_vars, document_type, relative_output_path, file_name)
 
     return matched_students
 
@@ -200,11 +212,6 @@ def gen_attest(year, client, data, relevant_months, document_type='attestation')
 def gen_all_factures(year, month, document_type='facture'):
     """
     generates all bills for a given month of a given year
-    - fetches the appropriate data
-    - puts together the variables that will be needed for building the pdf
-    - calls the pdf builder pdf_build with following args :
-    template_vars : a dict containing all necessary informations to build the document
-    output_name : the concatenation of the path from the output folder and the file name
     :param document_type: -
     :param month: month about which bills should be generated
     :param year: year about which bills should be generated
@@ -217,21 +224,20 @@ def gen_all_factures(year, month, document_type='facture'):
 
     unregistered_students = {student for student in data}  # students in data that are not in the DB
     unfound_students = set()  # Students in the DB that are not in data
+    missing_address = set() # Clients whose address are missing
+
     for index, client in clients.iterrows():
         gen_results = gen_facture(year, month, client, data)
         unregistered_students.difference_update(gen_results[0])
         unfound_students.update(gen_results[1])
-    warning(unregistered_students, unfound_students)
+        if not has_address(client):
+            missing_address.add(f"{client.Prénom} {client.Nom}")
+    warning(unregistered_students, unfound_students, missing_address)
 
 
 def gen_all_attest(year, month, document_type='attestation'):
     """
     generates all attestations for a given year
-    - fetches the appropriate data
-    - puts together the variables that will be needed for building the pdf
-    - calls the pdf builder pdf_build with following args :
-    template_vars : a dict containing all necessary informations to build the document
-    output_name : the concatenation of the path from the output folder and the file name
     :param document_type: -
     :param month: unused parameter
     :param year: year about which attestations should be generated
@@ -254,15 +260,19 @@ def gen_all_attest(year, month, document_type='attestation'):
         unregistered_students.update({candidate for candidate in data[m]})
     # Students in the database that aren't found in any sheet from any month
     unfound_students = set()
-    for i, client in clients.iterrows():
+    missing_address = set()  # Clients whose address are missing
+
+    for index, client in clients.iterrows():
         unfound_students.update({*client["Elèves rattachés"].split(' ; ')})
+        if not has_address(client):
+            missing_address.add(f"{client.Prénom} {client.Nom}")
 
     for index, client in clients.iterrows():
         matched_students = gen_attest(year, client, data, relevant_months)
         # Updating the warning sets
         unregistered_students.difference_update(matched_students)
         unfound_students.difference_update(matched_students)
-    warning(unregistered_students, unfound_students)
+    warning(unregistered_students, unfound_students, missing_address)
 
 
 def execute(year, month, document_type):
@@ -286,6 +296,6 @@ def execute(year, month, document_type):
 # TODO Ajouter une génération de Bilan annuel avec: CA Annuel, plot du CA mensuel et/ou CA par semaine, avec comparaison
 # TODO à la moyenne
 
-# TODO si pas d'adresse afficher un warning et générer quand même : (dans les template)
-
 # TODO raise an error in menu si les noms de colones de la DB ou les noms de lignes des sheets ont été modifiées
+# Pour ça faut catch une KeyError et chopper son args[0]
+# Ou une AttriuteError et chopper ça de son args[0] : "'Series' object has no attribute 'ça'"
