@@ -20,15 +20,15 @@
     </div>
     <div>
       <span>
-        {{ student_sex|civility}} {{ student_surname|upper}} {{student_firstname }}
+        {{ client_sex|civility}} {{ client_surname|upper}} {{client_firstname }}
       </span> <br>
-      {% if student_address.other %}
-      {{ student_address.other }} <br>
+      {% if client_address.other %}
+      {{ client_address.other }} <br>
       {% endif %}
-      {{ student_address.street }} <br>
-      {{ student_address.zipcode }} {{ student_address.city}} <br>
-      {% if student_address.country != 'France' %}
-      {{ student_address.country }} <br>
+      {{ client_address.street }} <br>
+      {{ client_address.zipcode }} {{ client_address.city}} <br>
+      {% if client_address.country != 'France' %}
+      {{ client_address.country }} <br>
       {% endif %}
     </div>
   </header>
@@ -36,10 +36,13 @@
   <main>
     <section>
       <p>
-        Je soussigné M. {{ teacher_firstname }} {{ teacher_surname }} certifie que {{ student_sex|civility }} {{ student_firstname }} {{ student_surname }} a bénéficié du service à la personne suivant : <span>Cours Particuliers à Domicile.</span>
+        Je soussigné M. {{ teacher_firstname }} {{ teacher_surname }} certifie que {{ client_sex|civility }}
+        {{ client_firstname }} {{ client_surname }} a bénéficié du service à la personne suivant :
+        <span>Cours Particuliers à Domicile.</span>
       </p>
       <p>
-        En {{ year }}, sa participation représente une somme totale de : {{ total_paid|money }}, dont {{ total_cesu|money }} au titre du Cesu préfinancé*.
+        En {{ year }}, sa participation représente une somme totale de : {{ total_paid|money }}, dont
+        {{ total_cesu|money }} au titre du Cesu préfinancé*.
       </p>
       <ul>
         <li>Montant total des factures de l'année : {{ total_paid|money }}</li>
@@ -68,10 +71,12 @@
     </section>
     <section>
       <p>
-        Les sommes perçues pour financer les services à la personne sont à déduire de la valeur indiquée précédemment. La déclaration engage la responsabilité du seul contribuable.
+        Les sommes perçues pour financer les services à la personne sont à déduire de la valeur indiquée précédemment.
+        La déclaration engage la responsabilité du seul contribuable.
       </p>
       <p>
-        * Pour les personnes utilisant le Chèque emploi service universel, seul le montant financé personnellement est déductible. Une attestation est délivrée par les établissements qui préfinancent le Cesu.
+        * Pour les personnes utilisant le Chèque emploi service universel, seul le montant financé personnellement est
+        déductible. Une attestation est délivrée par les établissements qui préfinancent le Cesu.
       </p>
       <p>
         Fait pour valoir ce que de droit,
