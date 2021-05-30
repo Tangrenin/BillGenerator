@@ -1,41 +1,38 @@
 from pdf_builder import pdf_build
-from data_utils import data_extraction, available_months, student_extraction, month_index
-from types_utils import Address
+from data_utils import data_extraction, available_months, client_extraction, month_index
+from types_utils import Address, DuplicateStudentsError
 from datetime import date
 import config.infos_yann as yannou
 
 current_date = date.today()
 
 
-def find_student(student, data):
+def find_attached_students(client, data):
     """
-    Finds a student from the database in the data dataframe, and returns the column containing relevant informations
-    relative to this student
-    :param student: a pd.dataframe row from the Infos_élèves dataframe
-    :param data: a pd.dataframe containing infos relative to courses from a certain month
-    :return:  a pd.dataframe column containing the info relative to a specific student for the month data contains
-    information about
+    Finds in a data sheet the information relative to the students linked with a client from the database
+    :param client: a pd.dataframe row containing the fiscal infos relative to a client
+    :param data: a pd.dataframe containing the billing info for each student
+    :return: a tuple of two elements :
+    attached_students_info : a list of pd.dataframe columns, each columns is for a specific student linked to the client
+    unfound_students : a set of all linked students not found in the data sheet
     """
-    for candidate in data:
-        prenom = candidate.split(' ')[0]
-        if student.Prénom == prenom:
-            # We check if the column label also contains a surname
-            if len(candidate.split(' ')) > 1:
-                # If there's a surname, we recreate it if it contains multiple words
-                nom = candidate.split(' ', 1)
-                # If there's a '.' at the end of the beginning of the surname, we remove it : Léa B. -> Léa B
-                nom = nom[:-1] if nom[-1] == '.' else nom
-                if student.Nom.startswith(nom):
-                    return data[candidate]
-            else:
-                return data[candidate]
-    # If no candidate is found
-    return None
+    student_names = client["Elèves rattachés"].split(' ; ')
+    attached_students_info = []  # res list
+    unfound_students = set()
+    for name in student_names:
+        name_occurrence = list(data.columns).count(name)
+        if name_occurrence > 1:  # check if a student is found multiple times
+            raise DuplicateStudentsError(name)  # TODO catch ça dans le main
+        elif name_occurrence == 0:
+            unfound_students.add(name)
+        else:
+            attached_students_info += [data[name]]
+    return attached_students_info, unfound_students
 
 
-def bill_number_gen(year, month, student_number):
+def bill_number_gen(year, month, client_number):
     # zfill fills the student_number with 0's so that there are always 2 digits
-    return str(year) + str(month_index(month)).zfill(2) + str(student_number).zfill(2)
+    return str(year) + str(month_index(month)).zfill(2) + str(client_number).zfill(2)
 
 
 def warning(unregistered_students, unfound_students):
@@ -55,7 +52,152 @@ def warning(unregistered_students, unfound_students):
         print("Sinon, il y a une faute pour ces élèves\n")
 
 
-def gen_all_factures(document_type, year, month):
+def gen_facture(year, month, client, data, document_type='facture'):
+    """
+
+    :param year: string : AAAA
+    :param month: string of the month in French
+    :param client: a pd.dataframe row containing client financial infos
+    :param data: a pd.dataframe containing billing infos for a month
+    :param document_type: string
+    :return: a tuple of two elements :
+    unfound_students : the students from the database not found in data
+    registered_students : the students in data that correspond to students in the database
+    """
+    unfound_students = set()
+    registered_students = set()
+
+    # We look for the students attached to each client in data sheets
+    query_results = find_attached_students(client, data)
+
+    # The students hasn't been found in the billing sheets
+    unfound_students.update(query_results[1])
+
+    # Billing vars for a client
+    nb_hours_student = {}
+    hourly_rate_student = {}
+    total_amount_student = {}
+    already_paid_client = 0
+    left_to_pay_client = 0
+    for student_info in query_results[0]:
+        # Since we found the student, he is registered in the database and can be added to the following set
+        registered_students.add(student_info.name)
+
+        nb_hours_student[student_info.name] = student_info["Nbre heures donné"]
+        hourly_rate_student[student_info.name] = student_info["Tarif Horaire"]
+        total_amount_student[student_info.name] = student_info["Donné"]
+        already_paid_client += student_info["Payé"]
+        left_to_pay_client += student_info["Reste à payer"]
+
+    # Generate bill identification
+    bill_number = bill_number_gen(year, month, client.name)  # here client.name refers to the row index in the DB
+
+    # puts together the necessary variables
+    file_name = "Fac_" + client.Nom.replace(' ', '') + client.Prénom + f"-{month_index(month)}_{year}"
+    output_name = f"Factures/{year}/{month}/{file_name}"
+    template_vars = {
+        "month": month,
+        "year": year,
+        "title": file_name,
+        # Generated infos
+        "bill_gen_date": current_date,
+        "bill_number": bill_number,
+        # Students database info
+        "client_firstname": client.Prénom,
+        "client_surname": client.Nom,
+        "client_sex": client["Sexe (F/M)"],
+        "client_address": Address(street=client.Rue,
+                                  zipcode=client["Code Postal"],
+                                  city=client.Ville,
+                                  country=client.Pays,
+                                  other=client["Complément d'adresse"]),
+        # Student monthly bills info
+        "nb_hours_student": nb_hours_student,
+        "hourly_rate_student": hourly_rate_student,
+        "total_amount_student": total_amount_student,
+        # Client monthly bills info
+        "already_paid_client": already_paid_client,
+        "left_to_pay_client": left_to_pay_client,
+        # Teacher info
+        "teacher_firstname": yannou.firstname,
+        "teacher_surname": yannou.surname,
+        "teacher_address": yannou.adresse,
+        "teacher_siret": yannou.siret,
+        "teacher_SAP": yannou.SAP}
+
+    # calls the pdf builder
+    pdf_build(template_vars, document_type, output_name)
+
+    return registered_students, unfound_students
+
+
+def gen_attest(year, client, data, relevant_months, document_type='attestation'):
+    """
+
+    :param year: string : AAAA
+    :param client: a pd.dataframe row containing client financial infos
+    :param data: a dictionary of pd.dataframes containing billing infos for a month, each for a given month
+    :param relevant_months: the months we have billing data about
+    :param document_type: string
+    :return: matched_students, a set of students from the database that were found in at least one data sheet
+    """
+    matched_students = set()
+    # Initialization of the yearly and monthly variables
+    total_paid = 0
+    total_cesu = 0
+    monthly_nb_hours = {}
+    monthly_hour_rate = {}
+    monthly_paid = {}
+
+    for m in relevant_months:
+        students_info = find_attached_students(client, data[m])[0]
+        for student in students_info:
+            matched_students.add(student.name)
+
+            # Updating yearly and monthly variables
+            total_paid += student["Payé"]
+            total_cesu += student["Payé en CESU"]
+            monthly_nb_hours[m] = student["Nbre heures payé"]
+            monthly_hour_rate[m] = student["Tarif Horaire"]
+            monthly_paid[m] = student["Payé"]
+
+    # puts together the necessary variables
+    file_name = "Attest_" + client.Nom.replace(' ', '') + client.Prénom + f"-{year}"
+    output_name = f"Attestations/{year}/{file_name}"
+    template_vars = {
+        "year": year,
+        "title": file_name,
+        # Generated infos
+        "attest_gen_date": current_date,
+        # Students database info
+        "client_firstname": client.Prénom,
+        "client_surname": client.Nom,
+        "client_sex": client["Sexe (F/M)"],
+        "client_address": Address(street=client.Rue,
+                                  zipcode=client["Code Postal"],
+                                  city=client.Ville,
+                                  country=client.Pays,
+                                  other=client["Complément d'adresse"]),
+        # Student yearly/monthly bills info
+        "total_paid": total_paid,
+        "total_cesu": total_cesu,
+        "monthly_nb_hours": monthly_nb_hours,
+        "monthly_hour_rate": monthly_hour_rate,
+        "monthly_paid": monthly_paid,
+        # Teacher info
+        "teacher_firstname": yannou.firstname,
+        "teacher_surname": yannou.surname,
+        "teacher_address": yannou.adresse,
+        "teacher_siret": yannou.siret,
+        "teacher_SAP": yannou.SAP}
+
+    # calls the pdf builder
+    pdf_build(template_vars, document_type, output_name)
+
+    return matched_students
+
+
+def gen_all_factures(year, month, document_type='facture'):
     """
     generates all bills for a given month of a given year
     - fetches the appropriate data
@@ -69,61 +211,20 @@ def gen_all_factures(document_type, year, month):
     :return: nothing
     """
     # gets the data
-    students = student_extraction()
+    clients = client_extraction()
     data = data_extraction(year, month)
     data = data.set_index("Informations")
 
-    unregistered_students = {candidate for candidate in data}
-    unfound_students = set()
-    for index, student in students.iterrows():
-        # We look for the corresponding student in the data sheet
-        student_info = find_student(student, data)
-        if student_info is not None:
-            # Since we found the student, he is registered in the database and can be removed from the following set
-            unregistered_students.remove(student_info.name)
-
-            # Generate bill identification
-            bill_number = bill_number_gen(year, month, index)
-
-            # puts together the necessary variables
-            file_name = "Fac_" + student.Nom.replace(' ', '') + student.Prénom + f"-{month_index(month)}_{year}"
-            output_name = f"{document_type}/{year}/{month}/{file_name}"
-            template_vars = {
-                "month": month,
-                "year": year,
-                # Generated infos
-                "bill_gen_date": current_date,
-                "bill_number": bill_number,
-                # Students database info
-                "student_firstname": student.Prénom,
-                "student_surname": student.Nom,
-                "student_sex": student["Sexe (F/M)"],
-                "student_address": Address(street=student.Rue,
-                                           zipcode=student["Code Postal"],
-                                           city=student.Ville,
-                                           country=student.Pays,
-                                           other=student["Complément d'adresse"]),
-                # Student monthly bills info
-                "nb_hours": student_info["Nbre heures donné"],
-                "hourly_rate": student_info["Tarif Horaire"],
-                "total_amount": student_info["Donné"],
-                "already_paid": student_info["Payé"],
-                "left_to_pay": student_info["Reste à payer"],
-                # Teacher info
-                "teacher_firstname": yannou.firstname,
-                "teacher_surname": yannou.surname,
-                "teacher_address": yannou.adresse,
-                "teacher_siret": yannou.siret,
-                "teacher_SAP": yannou.SAP}
-
-            # calls the pdf builder
-            pdf_build(template_vars, document_type, output_name)
-        else:  # The student hasn't been found in the billing sheets
-            unfound_students.add(f"{student.Prénom} {student.Nom}")
+    unregistered_students = {student for student in data}  # students in data that are not in the DB
+    unfound_students = set()  # Students in the DB that are not in data
+    for index, client in clients.iterrows():
+        gen_results = gen_facture(year, month, client, data)
+        unregistered_students.difference_update(gen_results[0])
+        unfound_students.update(gen_results[1])
     warning(unregistered_students, unfound_students)
 
 
-def gen_all_attest(document_type, year, month):
+def gen_all_attest(year, month, document_type='attestation'):
     """
     generates all attestations for a given year
     - fetches the appropriate data
@@ -135,82 +236,41 @@ def gen_all_attest(document_type, year, month):
     :param month: unused parameter
     :param year: year about which attestations should be generated
     :return: nothing
+    :raises: AttributeError: if a column-attribute has been modified in Infos_éèves or a row-attribute in data sheets
     """
     # gets the data
     data = {}
-    months = available_months(year)
-    for m in months:
+    relevant_months = available_months(year)
+    if len(relevant_months) == 0:
+        print("Aucune donnée d'heures de cours n'a été trouvée. Les attestations générées seront vierges")
+    for m in relevant_months:
         data[m] = data_extraction(year, m)
         data[m] = data[m].set_index("Informations")
-    students = student_extraction()
+    clients = client_extraction()
 
-    # Sets to handle missing students from the billing sheets or the database
+    # Sets of every students from any sheet that are not in the database
     unregistered_students = set()
-    unfound_students = {f"{student.Prénom} {student.Nom}" for i, student in students.iterrows()}
+    for m in relevant_months:
+        unregistered_students.update({candidate for candidate in data[m]})
+    # Students in the database that aren't found in any sheet from any month
+    unfound_students = set()
+    for i, client in clients.iterrows():
+        unfound_students.update({*client["Elèves rattachés"].split(' ; ')})
 
-    for index, student in students.iterrows():
-        # Initialization of the yearly and monthly variables
-        total_paid = 0
-        total_cesu = 0
-        monthly_nb_hours = {}
-        monthly_hour_rate = {}
-        monthly_paid = {}
-
-        for m in months:
-            # We load in the set all names in the billing sheet and will remove those that are found
-            unregistered_students.update({candidate for candidate in data[m]})
-            student_info = find_student(student, data[m])
-            if student_info is not None:
-                # We found the student, he is registered in the database and can be removed from the following sets
-                unfound_students.remove(f"{student.Prénom} {student.Nom}")
-                unregistered_students.remove(student_info.name)
-
-                total_paid += student_info["Payé"]
-                total_cesu += student_info["Payé en CESU"]
-                monthly_nb_hours[m] = student_info["Nbre heures payé"]
-                monthly_hour_rate[m] = student_info["Tarif Horaire"]
-                monthly_paid[m] = student_info["Payé"]
-
-        # puts together the necessary variables
-        file_name = "Attest_" + student.Nom.replace(' ', '') + student.Prénom + f"-{year}"
-        output_name = f"{document_type}/{year}/{file_name}"
-        template_vars = {
-            "year": year,
-            # Generated infos
-            "attest_gen_date": current_date,
-            # Students database info
-            "student_firstname": student.Prénom,
-            "student_surname": student.Nom,
-            "student_sex": student["Sexe (F/M)"],
-            "student_address": Address(street=student.Rue,
-                                       zipcode=student["Code Postal"],
-                                       city=student.Ville,
-                                       country=student.Pays,
-                                       other=student["Complément d'adresse"]),
-            # Student yearly/monthly bills info
-            "total_paid": total_paid,
-            "total_cesu": total_cesu,
-            "monthly_nb_hours": monthly_nb_hours,
-            "monthly_hour_rate": monthly_hour_rate,
-            "monthly_paid": monthly_paid,
-            # Teacher info
-            "teacher_firstname": yannou.firstname,
-            "teacher_surname": yannou.surname,
-            "teacher_address": yannou.adresse,
-            "teacher_siret": yannou.siret,
-            "teacher_SAP": yannou.SAP}
-
-        # calls the pdf builder
-        pdf_build(template_vars, document_type, output_name)
+    for index, client in clients.iterrows():
+        matched_students = gen_attest(year, client, data, relevant_months)
+        # Updating the warning sets
+        unregistered_students.difference_update(matched_students)
+        unfound_students.difference_update(matched_students)
     warning(unregistered_students, unfound_students)
 
 
-def execute(document_type, year, month):
+def execute(year, month, document_type):
     """
     calls the appropriate function according to the document_type that is asked for
     :param month:
     :param year:
-    :param document_type: the type of document that is to be generated
+    :param document_type: the type of document that is to be generated ('facture', 'attestation', 'bilan', 'all')
     :return: nothing
     """
     gen_function = {
@@ -218,7 +278,14 @@ def execute(document_type, year, month):
         'attestation': gen_all_attest,
     }
     if document_type == 'all':
-        for func in gen_function:
-            gen_function[func](document_type, year, month)
+        for doc in gen_function:
+            gen_function[doc](year, month)
     else:
-        gen_function[document_type](document_type, year, month)
+        gen_function[document_type](year, month)
+
+# TODO Ajouter une génération de Bilan annuel avec: CA Annuel, plot du CA mensuel et/ou CA par semaine, avec comparaison
+# TODO à la moyenne
+
+# TODO si pas d'adresse afficher un warning et générer quand même : (dans les template)
+
+# TODO raise an error in menu si les noms de colones de la DB ou les noms de lignes des sheets ont été modifiées
