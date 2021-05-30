@@ -22,7 +22,7 @@ def find_attached_students(client, data):
     for name in student_names:
         name_occurrence = list(data.columns).count(name)
         if name_occurrence > 1:  # check if a student is found multiple times
-            raise DuplicateStudentsError(name)  # TODO catch ça dans le main
+            raise DuplicateStudentsError(name)
         elif name_occurrence == 0:
             unfound_students.add(name)
         else:
@@ -209,10 +209,9 @@ def gen_attest(year, client, data, relevant_months, document_type='attestation')
     return matched_students
 
 
-def gen_all_factures(year, month, document_type='facture'):
+def gen_all_factures(year, month):
     """
     generates all bills for a given month of a given year
-    :param document_type: -
     :param month: month about which bills should be generated
     :param year: year about which bills should be generated
     :return: nothing
@@ -224,7 +223,7 @@ def gen_all_factures(year, month, document_type='facture'):
 
     unregistered_students = {student for student in data}  # students in data that are not in the DB
     unfound_students = set()  # Students in the DB that are not in data
-    missing_address = set() # Clients whose address are missing
+    missing_address = set()  # Clients whose address are missing
 
     for index, client in clients.iterrows():
         gen_results = gen_facture(year, month, client, data)
@@ -235,14 +234,13 @@ def gen_all_factures(year, month, document_type='facture'):
     warning(unregistered_students, unfound_students, missing_address)
 
 
-def gen_all_attest(year, month, document_type='attestation'):
+def gen_all_attest(year, month):
     """
     generates all attestations for a given year
-    :param document_type: -
     :param month: unused parameter
     :param year: year about which attestations should be generated
     :return: nothing
-    :raises: AttributeError: if a column-attribute has been modified in Infos_éèves or a row-attribute in data sheets
+    :raises: AttributeError: if a column-attribute has been modified in Infos_élèves or a row-attribute in data sheets
     """
     # gets the data
     data = {}
@@ -288,14 +286,11 @@ def execute(year, month, document_type):
         'attestation': gen_all_attest,
     }
     if document_type == 'all':
-        for doc in gen_function:
-            gen_function[doc](year, month)
+        for m in available_months(year):
+            gen_all_factures(year, m)
+        gen_all_attest(year, month)
     else:
         gen_function[document_type](year, month)
 
 # TODO Ajouter une génération de Bilan annuel avec: CA Annuel, plot du CA mensuel et/ou CA par semaine, avec comparaison
 # TODO à la moyenne
-
-# TODO raise an error in menu si les noms de colones de la DB ou les noms de lignes des sheets ont été modifiées
-# Pour ça faut catch une KeyError et chopper son args[0]
-# Ou une AttriuteError et chopper ça de son args[0] : "'Series' object has no attribute 'ça'"

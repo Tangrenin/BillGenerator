@@ -58,11 +58,11 @@ def pdf_build(template_vars, document_type, relative_output_path, file_name):
     if not Path(file_html).is_file():
         e = FileNotFoundError()
         e.filename = file_html
-        raise e  # TODO la catch, le nom du fichier est dans e.filename
+        raise e
     if not Path(file_css).is_file():
         e = FileNotFoundError()
         e.filename = file_css
-        raise e  # TODO la catch, le nom du fichier est dans e.filename
+        raise e
 
     # Checking a correcting if the file_name contains forbidden characters
     file_name = re.sub(r'[<>:"/\\|?*]', '', file_name)

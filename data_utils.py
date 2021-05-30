@@ -70,7 +70,6 @@ def data_extraction(year, month):
     :return: a pandas dataframe containing every useful information for the generation of bills
     :raises FileNotFoundError: that needs to be handled in the menu if the file isn't found.
     """
-    # TODO error handling in menu : catch a FileNotFoundError et dire ce qui n'a pas été trouvé
     file_path = Path(f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods")
     if not file_path.is_file():
         # Gestion des erreurs d'accents dans le nommage des fichiers
@@ -93,7 +92,6 @@ def client_extraction():
 
     :return: a pandas database containing students name, surname, address and sex
     """
-    # TODO error handling in menu : catch a FileNotFoundError et dire ce qui n'a pas été trouvé
     file_path = Path(f"{path_to_data}Infos_élèves.ods")
     df = pd.read_excel(file_path)
     return df
