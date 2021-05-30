@@ -37,7 +37,9 @@ def available_months(year):
     goes into the file system to see what .ods files exist in the directory for the given year
     :param year: -
     :return: a list of the names of the available months in the directory eg. ['Janvier', 'Fevrier']
+    The list is empty is no relevant file was found
     """
+    # TODO Error handling :
     month_list = ["Janvier", "Fevrier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre",
                   "Octobre", "Novembre", "Decembre", "Décembre"]
     available = []
@@ -77,11 +79,12 @@ def data_extraction(year, month):
     return df2
 
 
-def student_extraction():
+def client_extraction():
     """
 
     :return: a pandas database containing students name, surname, address and sex
     """
+    # TODO error handling in menu
     file_path = Path(f"{path_to_data}Infos_élèves.ods")
     df = pd.read_excel(file_path)
     return df
