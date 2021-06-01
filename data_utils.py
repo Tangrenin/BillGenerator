@@ -15,7 +15,9 @@ def has_address(client):
     :param client: a pd.dataframe row
     :return: True if an address is specified, else False
     """
-    res = isinstance(client.Rue, str) and isinstance(client["Code Postal"], str) and isinstance(client.Ville, str)
+    res = isinstance(client.Rue, str) and \
+          (isinstance(client["Code Postal"], float) or isinstance(client["Code Postal"], str)) and \
+          isinstance(client.Ville, str)
     return res
 
 

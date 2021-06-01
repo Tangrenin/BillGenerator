@@ -9,9 +9,12 @@ class Address:
     country: str = "France"
     other: str = ""
 
+    def __post_init__(self):
+        if isinstance(self.zipcode, float):
+            object.__setattr__(self, 'zipcode', f'{self.zipcode:g}')
+
 
 # Custom error classes
-
 class Error(Exception):
     """Base class for other exceptions"""
     pass
