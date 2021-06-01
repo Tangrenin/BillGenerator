@@ -38,7 +38,6 @@ def menu():
     # Default date is last month
     default_year = today.year - 1 if today.month == 1 else today.year
     default_month = 12 if today.month == 1 else today.month
-    default_month = months[default_month]
 
     print("=======================================")
     print("Génération de documents administratifs")
@@ -55,6 +54,7 @@ def menu():
         print("\nPour quel mois voulez-vous générer ces documents ?")
         prompt = f"Entrez un nombre : (1 - Janvier, 2 - Février, etc) \n[défaut : {default_month} {default_year}]"
         user_month_choice = safe_input(1, 12, default_month, prompt)
+        user_month_choice = months[user_month_choice]
         execute(user_year_choice, user_month_choice, 'facture')
     elif user_doc_choice == 2:  # Attestations
         execute(user_year_choice, default_month, 'attestation')

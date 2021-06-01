@@ -55,7 +55,7 @@ def available_months(year):
     for month in month_list:
         file_path = Path(f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods")
         if file_path.is_file():
-            available += month
+            available += [month]
     return available
 
 
