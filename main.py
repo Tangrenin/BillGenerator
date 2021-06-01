@@ -52,7 +52,8 @@ def menu():
 
     if user_doc_choice == 1:  # Factures
         print("\nPour quel mois voulez-vous générer ces documents ?")
-        prompt = f"Entrez un nombre : (1 - Janvier, 2 - Février, etc) \n[défaut : {default_month} {default_year}]"
+        prompt = f"Entrez un nombre : (1 - Janvier, 2 - Février, etc) \n" \
+            f"[défaut : {months[default_month]} {default_year}]"
         user_month_choice = safe_input(1, 12, default_month, prompt)
         user_month_choice = months[user_month_choice]
         execute(user_year_choice, user_month_choice, 'facture')
@@ -78,3 +79,5 @@ if __name__ == '__main__':
         print("Veuillez spécifier les noms d'élèves pour qu'ils soient uniques")
     except FileNotFoundError as e:
         print(f"Le fichier suivant n'existe pas ou n'est pas à sa place : {e.filename}")
+
+# TODO ça bug si on fait deux choix par défaut d'affilé
