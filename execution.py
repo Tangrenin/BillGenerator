@@ -38,24 +38,24 @@ def bill_number_gen(year, month, client_number):
 def warning(unregistered_students, unfound_students, missing_address):
     if len(unregistered_students) > 0:
         print("Attention, les élèves suivants ont été détectés dans les tableaux d'heures de cours mais ne se trouvent "
-              "pas dans la base de données")
+              "pas dans la base de données.")
         print(unregistered_students)
-        print("Vérifiez que ce sont bien des étudiants qui n'ont pas eu de cours pendant cette période")
-        print("Sinon, c'est qu'il y a une faute pour ces élèves\n")
+        print("Vérifiez que ce sont bien des étudiants qui n'ont pas eu de cours pendant cette période.")
+        print("Sinon, c'est qu'il y a une faute pour ces élèves.\n")
 
     if len(unfound_students) > 0:
         print("Attention, les élèves suivants ont été détectés dans la base de données mais ne se trouvent "
-              "pas dans les tableaux d'heures de cours")
+              "pas dans les tableaux d'heures de cours.")
         print(unfound_students)
-        print("Vérifiez que ce sont bien des étudiants qui n'ont pas eu de cours pendant cette période")
-        print("S'ils ont arrêté et reçu leur attestation, songez à les supprimer de Infos_élèves")
-        print("Sinon, il y a une faute pour ces élèves\n")
+        print("Vérifiez que ce sont bien des étudiants qui n'ont pas eu de cours pendant cette période.")
+        print("S'ils ont arrêté et reçu leur attestation, songez à les supprimer de Infos_élèves.")
+        print("Sinon, il y a une faute pour ces élèves.\n")
 
     if len(missing_address) > 0:
         print("Les clients suivants n'ont pas d'adresse présente dans Infos_élèves.")
         print(missing_address)
-        print("Les documents seront générés avec \"Adresse inconue\" pour adresse")
-        print("Pensez quand même à leur demander leur adresse")
+        print("Les documents seront générés avec \"Adresse inconue\" pour adresse.")
+        print("Pensez quand même à leur demander leur adresse.\n")
 
 
 def gen_facture(year, month, client, data, document_type='facture'):
@@ -216,6 +216,8 @@ def gen_all_factures(year, month):
     :param year: year about which bills should be generated
     :return: nothing
     """
+    print("***** Génération des factures... *****")
+
     # gets the data
     clients = client_extraction()
     data = data_extraction(year, month)
@@ -231,7 +233,8 @@ def gen_all_factures(year, month):
         unfound_students.update(gen_results[1])
         if not has_address(client):
             missing_address.add(f"{client.Prénom} {client.Nom}")
-    warning(unregistered_students, unfound_students, missing_address)
+    print("***** Génération des factures terminée *****\n")
+    return unregistered_students, unfound_students, missing_address
 
 
 def gen_all_attest(year, month):
@@ -242,6 +245,8 @@ def gen_all_attest(year, month):
     :return: nothing
     :raises: AttributeError: if a column-attribute has been modified in Infos_élèves or a row-attribute in data sheets
     """
+    print("***** Génération des attestations... *****")
+
     # gets the data
     data = {}
     relevant_months = available_months(year)
@@ -270,7 +275,19 @@ def gen_all_attest(year, month):
         # Updating the warning sets
         unregistered_students.difference_update(matched_students)
         unfound_students.difference_update(matched_students)
-    warning(unregistered_students, unfound_students, missing_address)
+    print("***** Génération des attestations terminée *****\n")
+    return unregistered_students, unfound_students, missing_address
+
+
+def update_warning_sets(old_sets, patch_sets):
+    """
+
+    :param old_sets:
+    :param patch_sets:
+    :return:
+    """
+    new_sets = map(set.union, old_sets, patch_sets)
+    return new_sets
 
 
 def execute(year, month, document_type):
@@ -281,16 +298,22 @@ def execute(year, month, document_type):
     :param document_type: the type of document that is to be generated ('facture', 'attestation', 'bilan', 'all')
     :return: nothing
     """
+    warning_sets = (set(), set(), set())
     gen_function = {
         'facture': gen_all_factures,
         'attestation': gen_all_attest,
     }
     if document_type == 'all':
         for m in available_months(year):
-            gen_all_factures(year, m)
-        gen_all_attest(year, month)
+            gen_results = gen_all_factures(year, m)
+            warning_sets = update_warning_sets(warning_sets, gen_results)
+        gen_results = gen_all_attest(year, month)
+        warning_sets = update_warning_sets(warning_sets, gen_results)
     else:
-        gen_function[document_type](year, month)
+        gen_results = gen_function[document_type](year, month)
+        warning_sets = update_warning_sets(warning_sets, gen_results)
+    warning(*warning_sets)
 
 # TODO Ajouter une génération de Bilan annuel avec: CA Annuel, plot du CA mensuel et/ou CA par semaine, avec comparaison
 # TODO à la moyenne
+# TODO accent selon si on lance all ou juste factue d'un mois
