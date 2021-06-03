@@ -79,5 +79,3 @@ if __name__ == '__main__':
         print("Veuillez spécifier les noms d'élèves pour qu'ils soient uniques")
     except FileNotFoundError as e:
         print(f"Le fichier suivant n'existe pas ou n'est pas à sa place : {e.filename}")
-
-# TODO ça bug si on fait deux choix par défaut d'affilé

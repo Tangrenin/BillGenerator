@@ -57,6 +57,10 @@ def available_months(year):
     for month in month_list:
         file_path = Path(f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods")
         if file_path.is_file():
+            # Making sure months in the 'available' list won't have accents
+            accent_check = {'Février': 'Fevrier', 'Décembre': 'Decembre'}
+            if month in accent_check:
+                month = accent_check[month]
             available += [month]
     return available
 

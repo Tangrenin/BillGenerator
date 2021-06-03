@@ -316,4 +316,3 @@ def execute(year, month, document_type):
 
 # TODO Ajouter une génération de Bilan annuel avec: CA Annuel, plot du CA mensuel et/ou CA par semaine, avec comparaison
 # TODO à la moyenne
-# TODO accent selon si on lance all ou juste factue d'un mois
