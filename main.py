@@ -79,3 +79,6 @@ if __name__ == '__main__':
         print("Veuillez spécifier les noms d'élèves pour qu'ils soient uniques")
     except FileNotFoundError as e:
         print(f"Le fichier suivant n'existe pas ou n'est pas à sa place : {e.filename}")
+
+# TODO nettoyer les dataframes s'il y a plein de lignes ou colonnes vides
+# TODO préciser le fichier d'où vient la colonne/ligne dont le nom a été modifié

@@ -216,7 +216,7 @@ def gen_all_factures(year, month):
     :param year: year about which bills should be generated
     :return: nothing
     """
-    print("***** Génération des factures... *****")
+    print(f"***** Génération des factures de : {month}... *****")
 
     # gets the data
     clients = client_extraction()

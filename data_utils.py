@@ -2,11 +2,24 @@ import pandas as pd
 from pathlib import Path
 # The path to the directory containing the data
 from config.infos_script import path_to_data
+from math import isnan
 
 """
 The job of this script is to extract the useful informations from the relevant source and provide a pandas dataframe 
 containing them.
 """
+
+
+def empty_cell(value):
+    """
+    check if a cell from a dataframe is empty
+    :param value:
+    :return: True if cell is NaN or '' else False
+    """
+    if isinstance(value, str):
+        return value == ""
+    else:
+        return isnan(value)
 
 
 def has_address(client):
@@ -15,10 +28,8 @@ def has_address(client):
     :param client: a pd.dataframe row
     :return: True if an address is specified, else False
     """
-    res = isinstance(client.Rue, str) and \
-          (isinstance(client["Code Postal"], float) or isinstance(client["Code Postal"], str)) and \
-          isinstance(client.Ville, str)
-    return res
+    no_address = empty_cell(client.Rue) or empty_cell(client["Code Postal"]) or empty_cell(client.Ville)
+    return not no_address
 
 
 def month_index(month):
