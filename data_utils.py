@@ -101,6 +101,9 @@ def data_extraction(year, month):
         file_path = Path(f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods")
     xls = pd.ExcelFile(file_path)
     df2 = pd.read_excel(xls, 'Feuille2', engine="odf")
+
+    # Cleaning the dataframe of its empty columns
+    df2.dropna(axis=1, how='all', inplace=True)
     return df2
 
 
@@ -111,4 +114,6 @@ def client_extraction():
     """
     file_path = Path(f"{path_to_data}Infos_élèves.ods")
     df = pd.read_excel(file_path)
+    # Cleaning the dataframe of its empty rows
+    df.dropna(axis=0, how='all', inplace=True)
     return df
