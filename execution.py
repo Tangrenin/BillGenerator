@@ -221,7 +221,6 @@ def gen_all_factures(year, month):
     # gets the data
     clients = client_extraction()
     data = data_extraction(year, month)
-    data = data.set_index("Informations")
 
     unregistered_students = {student for student in data}  # students in data that are not in the DB
     unfound_students = set()  # Students in the DB that are not in data
@@ -254,7 +253,6 @@ def gen_all_attest(year, month):
         print("Aucune donnée d'heures de cours n'a été trouvée. Les attestations générées seront vierges")
     for m in relevant_months:
         data[m] = data_extraction(year, m)
-        data[m] = data[m].set_index("Informations")
     clients = client_extraction()
 
     # Sets of every students from any sheet that are not in the database

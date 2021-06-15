@@ -3,6 +3,7 @@ from pathlib import Path
 # The path to the directory containing the data
 from config.infos_script import path_to_data
 from math import isnan
+from types_utils import MissingColumnClientError, MissingRowDataError
 
 """
 The job of this script is to extract the useful informations from the relevant source and provide a pandas dataframe 
@@ -102,8 +103,20 @@ def data_extraction(year, month):
     xls = pd.ExcelFile(file_path)
     df2 = pd.read_excel(xls, 'Feuille2', engine="odf")
 
+    # Renaming rows names
+    df2 = df2.set_index("Informations")
+
     # Cleaning the dataframe of its empty columns
     df2.dropna(axis=1, how='all', inplace=True)
+
+    # Spelling test of rows names
+    correct_names = ['Donné', 'Payé', 'Payé en CESU', 'Reste à payer précédent', 'Reste à payer', 'Tarif Horaire',
+                     'Nbre heures donné', 'Nbre heures payé']
+    rows_names = [j.name for i, j in df2.iterrows()]
+    test = [(correct_names[i], rows_names[i]) for i in range(len(correct_names)) if correct_names[i] != rows_names[i]]
+    if len(test) > 0:
+        raise MissingRowDataError(test, year, month, month_index(month))
+
     return df2
 
 
@@ -116,4 +129,12 @@ def client_extraction():
     df = pd.read_excel(file_path)
     # Cleaning the dataframe of its empty rows
     df.dropna(axis=0, how='all', inplace=True)
+
+    # Spelling test of columns names
+    correct_names = ['Prénom', 'Nom', 'Sexe (F/M)', 'Rue', 'Code Postal', 'Ville', 'Pays', 'Complément d\'adresse',
+                     'Elèves rattachés']
+    test = [(correct_names[i], df.columns[i]) for i in range(len(correct_names)) if correct_names[i] != df.columns[i]]
+    if len(test) > 0:
+        raise MissingColumnClientError(test)
+
     return df

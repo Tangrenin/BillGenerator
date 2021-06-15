@@ -1,6 +1,6 @@
 from datetime import date
 from execution import execute
-from types_utils import DuplicateStudentsError
+from types_utils import DuplicateStudentsError, MissingRowDataError, MissingColumnClientError
 import re
 
 
@@ -66,18 +66,7 @@ def menu():
 if __name__ == '__main__':
     try:
         menu()
-    except KeyError as e:
-        print(f"Erreur : le nom de la colonne ou ligne suivante d'un tableau a été modifiée : {e.args[0]} ")
-        print("Veuillez le renommer correctement")
-    except AttributeError as e:
-        key_name = e.args[0]
-        key_name = re.search(r"attribute '(.*)'$", key_name)[1]
-        print(f"Erreur : le nom de la colonne ou ligne suivante d'un tableau a été modifiée : {key_name} ")
-        print("Veuillez le renommer correctement")
-    except DuplicateStudentsError as e:
-        print(f"Attention, le nom suivant a été retrouvé plusieurs fois dans un tableau d'heures de cours : {e.name}")
-        print("Veuillez spécifier les noms d'élèves pour qu'ils soient uniques")
+    except (MissingRowDataError, MissingColumnClientError, DuplicateStudentsError) as e:
+        print(e.message)
     except FileNotFoundError as e:
         print(f"Le fichier suivant n'existe pas ou n'est pas à sa place : {e.filename}")
-
-# TODO préciser le fichier d'où vient la colonne/ligne dont le nom a été modifié
