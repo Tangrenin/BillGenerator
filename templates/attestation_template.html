@@ -8,84 +8,84 @@
 
 <body>
   <header>
-    <div>
-      Entreprise {{ teacher_surname|upper }} {{ teacher_firstname|upper }} agréé pour les services à la personne. <br>
-      Adresse de l'organisme : <br>
-      {% if teacher_address.other %}
-      {{ teacher_address.other }} <br>
+    <div class="teacher">
+      <p>Entreprise {{ teacher_surname|upper }} {{ teacher_firstname|upper }}</p>
+      <p>agréé pour les services à la personne.</p>
+      <p>Siret : {{ teacher_siret }} </p>
+      <p>SAP : {{ teacher_SAP }}</p>
+      <p>Adresse de l'organisme : </p>
+      {% if teacher_address.other is defined %}
+      <p>{{ teacher_address.other }} </p>
       {% endif %}
-      {{ teacher_address.street }} <br>
-      {{ teacher_address.zipcode }} {{ teacher_address.city}} <br>
-      Siret : {{ teacher_siret }}
+      <p>{{ teacher_address.street }} </p>
+      <p>{{ teacher_address.zipcode }} {{ teacher_address.city}} </p>
+      <p>{{ teacher_address.country  }}</p>
+
     </div>
-    <div>
-      <span>
-        {{ client_sex|civility}} {{ client_surname|upper}} {{client_firstname }}
-      </span> <br>
-      {% if client_address.other %}
-      {{ client_address.other }} <br>
+    <div class="client">
+      <p>{{ client_sex|civility}} {{ client_surname|upper}} {{client_firstname }} </p>
+      {% if client_address.other is defined %}
+      <p>{{ client_address.other }} </p>
       {% endif %}
-      {{ client_address.street }} <br>
-      {{ client_address.zipcode }} {{ client_address.city}} <br>
-      {% if client_address.country != 'France' %}
-      {{ client_address.country }} <br>
+      <p>{{ client_address.street }} </p>
+      <p>{{ client_address.zipcode }} {{ client_address.city}} </p>
+      {% if client_address.country is defined %}
+      <p>{{ client_address.country }} </p>
       {% endif %}
     </div>
   </header>
   <h1>Attestation destinée au centre des impôts</h1>
   <main>
-    <section>
+    <div class="letter">
       <p>
-        Je soussigné M. {{ teacher_firstname }} {{ teacher_surname }} certifie que {{ client_sex|civility }}
-        {{ client_firstname }} {{ client_surname }} a bénéficié du service à la personne suivant :
-        <span>Cours Particuliers à Domicile.</span>
+        Je soussigné M. {{ teacher_firstname }} {{ teacher_surname }} certifie que
+        {{ client_sex|civility }} {{ client_firstname }} {{ client_surname }} a bénéficié du service à
+        la personne suivant :
+        <span class="service">Cours Particuliers à Domicile.</span>
       </p>
       <p>
         En {{ year }}, sa participation représente une somme totale de : {{ total_paid|money }}, dont
-        {{ total_cesu|money }} au titre du Cesu préfinancé*.
+        {{ total_cesu|money }} au titre du Cesu préfinancé <span class="asterisque">*</span>.
       </p>
-      <ul>
-        <li>Montant total des factures de l'année : {{ total_paid|money }}</li>
-        <li>Montant toal payé en Cesu préfinancés : {{ total_cesu|money }}</li>
-      </ul>
-    </section>
-    <section>
-      <table>
-        <tr>
-          <th>Intervenant</th>
-          <th>Temps</th>
-          <th>Mois</th>
-          <th>Prix</th>
-          <th>Prix horaire</th>
-        </tr>
-        {% for month in monthly_paid.keys() %}
-        <tr>
-          <td>{{ teacher_surname|capitalize}} {{teacher_firstname|capitalize}}</td>
-          <td>{{monthly_nb_hours[month] }} heures</td>
-          <td>{{ month }} {{ year }}</td>
-          <td>{{ monthly_paid[month]|money }}</td>
-          <td>{{ monthly_hour_rate[month]|money }}</td>
-        </tr>
-        {% endfor %}
-      </table>
-    </section>
-    <section>
-      <p>
-        Les sommes perçues pour financer les services à la personne sont à déduire de la valeur indiquée précédemment.
-        La déclaration engage la responsabilité du seul contribuable.
-      </p>
-      <p>
-        * Pour les personnes utilisant le Chèque emploi service universel, seul le montant financé personnellement est
-        déductible. Une attestation est délivrée par les établissements qui préfinancent le Cesu.
-      </p>
-      <p>
-        Fait pour valoir ce que de droit,
-      </p>
-    </section>
+    </div>
+    <table class="bilan">
+      <tr class="bilan__titres">
+        <th>Intervenant</th>
+        <th>Temps</th>
+        <th>Mois</th>
+        <th>Prix</th>
+        <th>Prix horaire</th>
+      </tr>
+      {% for month in monthly_paid.keys() %}
+      <tr class="bilan__mois">
+        <td>{{ teacher_surname|capitalize}} {{teacher_firstname|capitalize}}</td>
+        <td>{{monthly_nb_hours[month] }} heures</td>
+        <td>{{ month }} {{ year }}</td>
+        <td>{{ monthly_paid[month]|money }}</td>
+        <td>{{ monthly_hour_rate[month]|money }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    <div class="letter">
+      <div class="letter__summary">
+        <p>Les sommes perçues pour financer les services à la personne sont à déduire de la valeur indiquée précédemment.
+        La déclaration engage la responsabilité du seul contribuable.</p>
+        <ul class="total-price">
+        <li>Montant total des factures de l'année : <span class="price">{{ total_paid|money }}</span></li>
+        <li>Montant toal payé en Cesu préfinancés : <span class="price">{{ total_cesu|money }}</span></li>
+    </ul>
+      </div>
+      <div class="signature">
+        <p>Fait pour valoir ce que de droit,</p>
+        <p>Le {{ attest_gen_date.strftime('%d/%m/%Y') }}</p>
+        <p>{{ teacher_firstname }} {{ teacher_surname }} auto-entrepreneur</p>
+      </div>
+    </div>
   </main>
   <footer>
-    Le {{ attest_gen_date.strftime('%d/%m/%Y') }} <br>
-    {{ teacher_firstname }} {{ teacher_surname }} auto-entrepreneur
+    <p><span class="asterisque">*</span>Pour les personnes utilisant le Chèque emploi service universel,
+        seul le montant financé personnellement est déductible. Une attestation est délivrée par les établissements qui
+        préfinancent le Cesu. </p>
   </footer>
 </body>
 
