@@ -13,15 +13,14 @@
       <div class="infos__teacher">
         <p class="infos__teacher__title">Entreprise {{ teacher_surname|upper }} {{ teacher_firstname|upper }}</p>
         <p>agréé pour les services à la personne.</p>
-        <p>Siret : {{ teacher_siret }} </p>
-        <p>SAP : {{ teacher_SAP }}</p>
-        <p>Adresse de l'organisme : </p>
         {% if teacher_address.other is defined %}
         <p>{{ teacher_address.other }} </p>
         {% endif %}
         <p>{{ teacher_address.street }} </p>
         <p>{{ teacher_address.zipcode }} {{ teacher_address.city}} </p>
         <p>{{ teacher_address.country  }}</p>
+        <p>Siret : {{ teacher_siret }} </p>
+        <p>SAP : {{ teacher_SAP }}</p>
       </div>
       <div class="infos__client">
         <p>{{ client_sex|civility}} {{ client_surname|upper}} {{client_firstname }} </p>
@@ -46,8 +45,9 @@
         <span class="service">Cours Particuliers à Domicile.</span>
       </p>
       <p>
-        En {{ year }}, sa participation représente une somme totale de : {{ total_paid|money }}, dont
-        {{ total_cesu|money }} au titre du Cesu préfinancé <span class="asterisque">*</span>.
+        En {{ year }}, sa participation représente une somme totale de :
+        <span class="price"> {{ total_paid|money }} </span>,
+        dont {{ total_cesu|money }} au titre du Cesu préfinancé<span class="asterisque">*</span>.
       </p>
     </div>
     <table class="bilan">
@@ -72,15 +72,23 @@
       <div class="letter__summary">
         <p>Les sommes perçues pour financer les services à la personne sont à déduire de la valeur indiquée précédemment.
         La déclaration engage la responsabilité du seul contribuable.</p>
-        <ul class="total-price">
-        <li>Montant total des factures de l'année : <span class="price">{{ total_paid|money }}</span></li>
-        <li>Montant toal payé en Cesu préfinancés : <span class="price">{{ total_cesu|money }}</span></li>
-    </ul>
+        <div class="total-price-container">
+          <table class="total-price">
+            <tr>
+              <th class="total-price__title">Total : </th>
+              <td class="total-price__amount">{{ total_paid|money }}</td>
+            </tr>
+            <tr>
+              <th class="total-price__title">Dont Cesu : </th>
+              <td class="total-price__amount">{{ total_cesu|money }}</td>
+            </tr>
+        </table>
+        </div>
       </div>
       <div class="signature">
         <p>Fait pour valoir ce que de droit,</p>
         <p>Le {{ attest_gen_date.strftime('%d/%m/%Y') }}</p>
-        <p>{{ teacher_firstname }} {{ teacher_surname }} auto-entrepreneur</p>
+        <p>{{ teacher_firstname }} {{ teacher_surname }}, auto-entrepreneur</p>
       </div>
     </div>
   </main>
