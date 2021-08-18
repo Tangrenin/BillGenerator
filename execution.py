@@ -103,7 +103,7 @@ def gen_facture(year, month, client, data, document_type='facture'):
 
     # puts together the necessary variables
     file_name = "Fac_" + client.Nom.replace(' ', '') + client.Prénom + f"-{month_index(month)}_{year}"
-    relative_output_path = f"Factures/{year}/{month}/"
+    relative_output_path = f"Factures/{year}/{month_index(month)}-{month}/"
     template_vars = {
         "month": month,
         "year": year,
