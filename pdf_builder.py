@@ -37,7 +37,7 @@ def money(value):
 
 def is_defined(value):
     """
-
+    Checks if a value extracted from a database was indeed defined (i.e. the cell was not empty)
     :param value: -
     :return: True if value is a string, else False
     """
