@@ -1,9 +1,134 @@
-tr
-{
-    border: solid black 2px;
+/* General */
+@font-face {
+    font-family: 'Artemisia';
+    src: url('fonts/gfs_artemisia/GFSArtemisia.otf') format('otf'),
+        url('fonts/gfs_artemisia/GFSArtemisia.ttf') format('ttf');
 }
 
-table
-{
+@font-face {
+    font-family: 'Orkney';
+    src: url("fonts/orkney/Orkney Regular.eot") format("eot"),
+         url("fonts/orkney/Orkney Regular.woff2") format("woff2"),
+         url("fonts/orkney/Orkney Regular.woff") format("woff"),
+         url("fonts/orkney/Orkney Regular.otf") format("otf"),
+         url("fonts/orkney/Orkney Regular.ttf") format("ttf");
+}
+
+@page {
+    margin: 0;
+}
+
+body {
+    margin: 0;
+    font-family: "Orkney", sans-serif;
+}
+
+
+/* margins */
+header>*, footer {
+    padding: 0 8%;
+}
+
+/* color */
+
+header, .total {
+    background: #269fd6;
+}
+
+/* header */
+header {
+    color: white;
+    width: 100%;
+    padding-top: 3%;
+}
+
+.bill-data {
+    margin-left: auto;
+    margin-right: 0;
+    border: solid 2px #184899;
+    border-right: 0;
+    border-radius: 30px 0 0 30px;
+    padding-right: 10px;
+}
+
+.infos__teacher__title {
+    font-family: Artemisia, serif;
+}
+
+h1 {
+    text-align: center;
+    padding-bottom: 8px;
+}
+
+.infos {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.infos__client{
+    font-size: 19px;
+    margin-top: 30px;
+}
+
+.infos__client__title{
+    font-family: Artemisia, serif;
+    margin-bottom: 15px;
+}
+
+header p {
+    margin: 0;
+}
+
+/* main */
+.asterisque {
+    color: firebrick;
+}
+
+/* -- bilan */
+.bilan {
+    margin: 45px auto;
     border-collapse: collapse;
+}
+
+.bilan td, .bilan th {
+    border: darkgray solid 1px;
+    padding: 5px 9px;
+}
+
+/* total */
+.total-container {
+    margin-bottom: 40px;
+    margin-top: 100px;
+}
+
+.total {
+    padding-top: 5px;
+    width: 35%;
+    margin-left: auto;
+    margin-right: 0;
+    border: 2px solid #184899;
+    border-right: 0;
+    border-radius: 5px 0 0 5px;
+}
+
+.total th {
+    width: 150px;
+    text-align: right;
+    color: white;
+}
+
+.total td {
+    color: black;
+}
+
+/* Footer */
+footer {
+    position: absolute;
+    bottom: 0;
+    font-style: italic;
+}
+
+.conditions__title, .remarques__title {
+    font-weight: bold;
 }
