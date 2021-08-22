@@ -1,20 +1,98 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-    <meta charset="UTF-8">
-    <title>{{ title }}</title>
+  <meta charset="UTF-8">
+  <title>Facture_{{ client_surname }}{{ client_firstname }} - {{ month }}_{{ year }}</title>
+  <link rel="stylesheet" href="attestation_style.css">
 </head>
+
 <body>
-    <h1>Facture pour {{ client }}</h1>
-    <table>
-        {% for i in range(3) %}
-        <tr>
-            <td> case n°{{i}}.1</td>
-            <td> case n°{{i}}.2</td>
-            <td> case n°{{i}}.3</td>
-        </tr>
-        {% endfor %}
+  <header>
+    <table class="bill-data">
+      <tr>
+        <th>Date</th>
+        <td>{{ bill_gen_date }}</td>
+      </tr>
+      <tr>
+        <th>N° de Facture</th>
+        <td>FAC{{ bill_number }}</td>
+      </tr>
     </table>
-    <p>Ma fleur préférée est {{ flower }}</p>
+    <div class="infos">
+      <div class="infos__teacher">
+        <p class="infos__teacher__title">Entreprise {{ teacher_surname|upper }} {{ teacher_firstname|upper }}</p>
+        <p>agréé pour les services à la personne.</p>
+        {% if teacher_address.other is defined %}
+        <p>{{ teacher_address.other }} </p>
+        {% endif %}
+        <p>{{ teacher_address.street }} </p>
+        <p>{{ teacher_address.zipcode }} {{ teacher_address.city}} </p>
+        <p>{{ teacher_address.country  }}</p>
+        <p>Siret : {{ teacher_siret }} </p>
+        <p>SAP : {{ teacher_SAP }}</p>
+      </div>
+      <div class="infos__client">
+        <p>{{ client_sex|civility}} {{ client_surname|upper}} {{client_firstname }} </p>
+        {% if client_address.other is defined %}
+        <p>{{ client_address.other }} </p>
+        {% endif %}
+        <p>{{ client_address.street }} </p>
+        <p>{{ client_address.zipcode }} {{ client_address.city}} </p>
+        {% if client_address.country is defined %}
+        <p>{{ client_address.country }} </p>
+        {% endif %}
+      </div>
+    </div>
+    <h1>Facture de {{ month }} {{ year }}</h1>
+  </header>
+  <main>
+    <table class="bilan">
+      <tr class="bilan__titres">
+        <th>Quantité</th>
+        <th>Désignation des prestations</th>
+        <th>Prix unitaire</th>
+        <th>Total</th>
+      </tr>
+      {% for student in total_amount_student.keys() %}
+      <tr>
+        <td>{{ nb_hours_student[student] }}</td>
+        <td>1h de soutien scolaire à domicile</td>
+        <td>{{ hourly_rate_student[student]|money }}</td>
+        <td>{{ total_amount_student[student]|money }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    <table class="Total NET">
+      <tr>
+        <th>Total Net</th>
+        <td>{{ (already_paid_client + left_to_pay_client)|money }}</td>
+      </tr>
+      <tr>
+        <th>Acompte versé</th>
+        <td>{{ already_paid_client|money }}</td>
+      </tr>
+      <tr>
+        <th>Reste à régler</th>
+        <td>{{ left_to_pay_client|money }}</td>
+      </tr>
+    </table>
+  </main>
+  <footer>
+    <div class="conditions">
+      <p>Règlement à effectuer exclusivement par virement bancaire, par chèque ou en liquide.</p>
+      <p>Le règlement, si fait par chèque, se fait à l'ordre de "Chiffaudel Yann"</p>
+      <p>Règlement avec un délai maximal de 45 jours après la date de facturation.</p>
+      <p>En cas de paiement effectué après la date d'échéance, pénalités au taux annuel de 50%</p>
+    </div>
+    <div class="remarques">
+      <p>Vous bénéficiez d'une remise de 50% sur le total annuel de toutes vos factures<span class="asterisque">*</span>
+      </p>
+      <p>Remise effectuée sous forme de réduction ou crédit d'impôt, sous condition d'éligibilité.</p>
+      <p><span class="asterisque">*</span>Article 199 sexdéciès du CGI, sous réserve de modification de la législation.
+      </p>
+    </div>
+  </footer>
 </body>
+
 </html>
