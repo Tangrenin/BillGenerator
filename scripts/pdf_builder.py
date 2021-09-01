@@ -73,7 +73,7 @@ def pdf_build(template_vars, document_type, relative_output_path, file_name):
     pdf_name = Path(output_directory + relative_output_path + file_name + ".pdf")
 
     # loading the jinja2 environment
-    env = Environment(loader=FileSystemLoader('.'))
+    env = Environment(loader=FileSystemLoader('..'))
     env.filters["civility"] = civility
     env.filters["money"] = money
     env.tests["defined"] = is_defined

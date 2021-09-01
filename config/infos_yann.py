@@ -1,4 +1,4 @@
-from types_utils import Address
+from scripts.types_utils import Address
 
 firstname = "Yann"
 surname = "Chiffaudel"
