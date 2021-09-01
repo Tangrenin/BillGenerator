@@ -1,7 +1,6 @@
 from datetime import date
-from execution import execute
-from types_utils import DuplicateStudentsError, MissingRowDataError, MissingColumnClientError
-import re
+from scripts.execution import execute
+from scripts.types_utils import DuplicateStudentsError, MissingRowDataError, MissingColumnClientError
 
 
 def safe_input(min_val, max_val, default, question=""):
