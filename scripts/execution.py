@@ -1,6 +1,6 @@
-from pdf_builder import pdf_build
-from data_utils import data_extraction, available_months, client_extraction, month_index, has_address
-from types_utils import Address, DuplicateStudentsError
+from scripts.pdf_builder import pdf_build
+from scripts.data_utils import data_extraction, available_months, client_extraction, month_index, has_address
+from scripts.types_utils import Address, DuplicateStudentsError
 from datetime import date
 import config.infos_yann as yannou
 
@@ -313,4 +313,7 @@ def execute(year, month, document_type):
     warning(*warning_sets)
 
 # TODO Ajouter une génération de Bilan annuel avec: CA Annuel, plot du CA mensuel et/ou CA par semaine, avec comparaison
-# TODO à la moyenne
+#  à la moyenne
+
+# TODO faire un script qui créé l'arborescence de data pour l'année en cours à partir du mois courant (en ayant
+#  d'abord vérifié si les fichiers n'étaient pas déjà présents)

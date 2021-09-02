@@ -3,7 +3,7 @@ from pathlib import Path
 # The path to the directory containing the data
 from config.infos_script import path_to_data
 from math import isnan
-from types_utils import MissingColumnClientError, MissingRowDataError
+from scripts.types_utils import MissingColumnClientError, MissingRowDataError
 
 """
 The job of this script is to extract the useful informations from the relevant source and provide a pandas dataframe 
