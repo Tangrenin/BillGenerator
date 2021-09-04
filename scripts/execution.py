@@ -2,7 +2,7 @@ from scripts.pdf_builder import pdf_build
 from scripts.data_utils import data_extraction, available_months, client_extraction, month_index, has_address
 from scripts.types_utils import Address, DuplicateStudentsError
 from datetime import date
-import config.infos_yann as yannou
+import config.infos_teacher as yannou
 
 current_date = date.today()
 
