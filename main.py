@@ -1,6 +1,7 @@
 from datetime import date
 from scripts.execution import execute
 from scripts.types_utils import DuplicateStudentsError, MissingRowDataError, MissingColumnClientError
+from scripts.data_templates_generator import data_templates_generation
 
 
 def safe_input(min_val, max_val, default, question=""):
@@ -43,8 +44,16 @@ def menu():
     print("=======================================\n")
     print("(Pour sélectionner le choix par défaut, appuyez simplement sur Entrée)\n")
     print("Quel document voulez vous générer ?")
-    prompt = "0 - Tous [défaut] \n1 - Facture \n2 - Attestation"
-    user_doc_choice = safe_input(0, 2, 0, prompt)
+    prompt = "0 - Tous [défaut] \n1 - Facture \n2 - Attestation \n3 - Génération des feuilles de données"
+    user_doc_choice = safe_input(0, 3, 0, prompt)
+
+    if user_doc_choice == 3:
+        print("***** Génération de la base de donnée des élèves... *****")
+        print("***** Génération des feuilles de comptabilité de l'année en cours... *****")
+        data_templates_generation(today.year)
+        print("***** Génération terminée *****\n")
+        print("PS : Pas d'inquiétudes, si des documents étaient déjà présents, ils n'ont pas été re-générés ou écrasés")
+        return 0
 
     prompt = f"\nPour quelle année voulez-vous générer des documents ? [défaut : {default_year}]"
     user_year_choice = safe_input(2010, today.year, default_year, prompt)
