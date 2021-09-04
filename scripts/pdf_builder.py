@@ -52,10 +52,10 @@ def pdf_build(template_vars, document_type, relative_output_path, file_name):
     :param relative_output_path: a string containing relative path from the output folder
     :param file_name: the pdf file name string  without the .pdf extension
     """
-    file_html = f"templates/{document_type}_template.html"
+    # the path is relative to templates folder for html since it will be specified to jinja, not the case for the css
+    file_html = f"{document_type}_template.html"
     file_css = f"templates/{document_type}_style.css"
-
-    if not Path(file_html).is_file():
+    if not Path(f'templates/{file_html}').is_file():
         e = FileNotFoundError()
         e.filename = file_html
         raise e
@@ -72,8 +72,8 @@ def pdf_build(template_vars, document_type, relative_output_path, file_name):
 
     pdf_name = Path(output_directory + relative_output_path + file_name + ".pdf")
 
-    # loading the jinja2 environment
-    env = Environment(loader=FileSystemLoader('..'))
+    # loading the jinja2 environment, specifying the templates folder to jinja since it's in another folder
+    env = Environment(loader=FileSystemLoader('templates'))
     env.filters["civility"] = civility
     env.filters["money"] = money
     env.tests["defined"] = is_defined
