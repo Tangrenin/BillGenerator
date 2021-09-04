@@ -9,3 +9,6 @@ La génération de PDF est faite à partir de Weasyprint et Jinja2, qui permette
 3. Exécuter main.py et sélectionner la génération des feuilles de données pour la mise en place automatique des feuilles de comptabilité et de la base de donnée d'élèves.
 4. Mettre ses coordonnées dans config/infos_teacher.py 
 5. Faites votre compta avec joie :) 
+
+### Exemple de résultat : 
+![alt text](templates/exemple_facture.jpg "exemple de facture générée")
