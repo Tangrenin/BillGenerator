@@ -4,6 +4,8 @@ La génération de PDF est faite à partir de Weasyprint et Jinja2, qui permette
 
 ## Installation : 
 1. Cloner le projet
-2. Exécuter main.py et sélectionner la génération des feuilles de données pour la mise en place automatique des feuilles de comptabilité et de la base de donnée d'élèves.
-3. Mettre ses coordonnées dans config/infos_teacher.py 
-4. Faites votre compta avec joie :) 
+2. Installer les bibliothèques et dépendances python avec la commande :
+`pip install -r requirements.txt`
+3. Exécuter main.py et sélectionner la génération des feuilles de données pour la mise en place automatique des feuilles de comptabilité et de la base de donnée d'élèves.
+4. Mettre ses coordonnées dans config/infos_teacher.py 
+5. Faites votre compta avec joie :) 
