@@ -89,19 +89,13 @@ def data_extraction(year, month):
     :raises FileNotFoundError: that needs to be handled in the menu if the file isn't found.
     """
     file_path = Path(f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods")
-    if not file_path.is_file():
-        # Gestion des erreurs d'accents dans le nommage des fichiers
-        if month == 'Février':
-            month = 'Fevrier'
-        elif month == 'Fevrier':
-            month = 'Février'
-        elif month == 'Décembre':
-            month = 'Decembre'
-        elif month == 'Decembre':
-            month = 'Décembre'
-        file_path = Path(f"{path_to_data}{year}/{month_index(month)}-Cours{month}.ods")
-    xls = pd.ExcelFile(file_path)
-    df2 = pd.read_excel(xls, 'Feuille2', engine="odf")
+    if not file_path.is_file():  # si le fichier est en .xlsx
+        file_path = Path(f"{path_to_data}{year}/{month_index(month)}-Cours{month}.xlsx")
+        xls = pd.ExcelFile(file_path)
+        df2 = pd.read_excel(xls, 'Feuille2')
+    else:
+        xls = pd.ExcelFile(file_path)
+        df2 = pd.read_excel(xls, 'Feuille2', engine="odf")
 
     # Renaming rows names
     df2 = df2.set_index("Informations")
