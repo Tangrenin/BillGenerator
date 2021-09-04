@@ -314,6 +314,3 @@ def execute(year, month, document_type):
 
 # TODO Ajouter une génération de Bilan annuel avec: CA Annuel, plot du CA mensuel et/ou CA par semaine, avec comparaison
 #  à la moyenne
-
-# TODO faire un script qui créé l'arborescence de data pour l'année en cours à partir du mois courant (en ayant
-#  d'abord vérifié si les fichiers n'étaient pas déjà présents)
