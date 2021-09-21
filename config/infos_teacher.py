@@ -1,11 +1,11 @@
 from scripts.types_utils import Address
 
-firstname = "Yann"
-surname = "Chiffaudel"
+firstname = "Prénom"
+surname = "Nom"
 
-adresse = Address(street="16 rue Buffon",
-                  zipcode="91400",
-                  city="Orsay")
+adresse = Address(street="16 rue Machin-Truc",
+                  zipcode="75000",
+                  city="Ville")
 
-siret = "881 443 576 00015"
-SAP = "SAP881443576"
+siret = "123 456 789 00000"
+SAP = "SAP123456789"
