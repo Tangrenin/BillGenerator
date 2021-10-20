@@ -111,7 +111,7 @@ def data_extraction(year, month):
     if len(test) > 0:
         raise MissingRowDataError(test, year, month, month_index(month))
 
-    return df2
+    return df2.fillna(0)
 
 
 def client_extraction():
