@@ -10,5 +10,9 @@ La génération de PDF est faite à partir de Weasyprint et Jinja2, qui permette
 4. Mettre ses coordonnées dans config/infos_teacher.py 
 5. Faites votre compta avec joie :) 
 
+## Utilisation : 
+Rentrez dans les feuilles de données pour une case de coordonnées (date, élève), le montant que vous avez été payé.
+Puis rentrez votre tarif horraire dans le deuxième onglet.
+
 ### Exemple de résultat : 
 ![alt text](templates/exemple_facture.jpg "exemple de facture générée")
