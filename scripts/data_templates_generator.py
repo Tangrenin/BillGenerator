@@ -29,12 +29,12 @@ def data_templates_generation(year):
     Path(f'{path_to_data}{year}').mkdir(parents=True, exist_ok=True)
 
     # Check if student database exists, if not create it
-    if not Path(f"{path_to_data}Infos_élèves.ods").is_file():
-        shutil.copy("templates/Infos_élèves.ods", f"{path_to_data}Infos_élèves.ods")
+    if not Path(f"{path_to_data}Infos_élèves.xlsx").is_file():
+        shutil.copy("templates/Infos_élèves.xlsx", f"{path_to_data}Infos_élèves.xlsx")
         # And create all missing month sheets
         for n, month in months.items():
             file_path_no_ext = f'{path_to_data}{year}/{n}-Cours{month}'
-            if (not Path(f'{file_path_no_ext}.ods').is_file()) and (not Path(f'{file_path_no_ext}.xlsx').is_file()):
+            if (not Path(f'{file_path_no_ext}.xlsx').is_file()) and (not Path(f'{file_path_no_ext}.ods').is_file()):
                 shutil.copy('templates/0-CoursMois.xlsx', f'{file_path_no_ext}.xlsx')
     else:
         clients = client_extraction()
@@ -49,5 +49,5 @@ def data_templates_generation(year):
         # And creating the data sheets in the relevant folders
         for n, month in months.items():
             file_path_no_ext = f'{path_to_data}{year}/{n}-Cours{month}'
-            if (not Path(f'{file_path_no_ext}.ods').is_file()) and (not Path(f'{file_path_no_ext}.xlsx').is_file()):
+            if (not Path(f'{file_path_no_ext}.xlsx').is_file()) and (not Path(f'{file_path_no_ext}.ods').is_file()):
                 book.save(f'{file_path_no_ext}.xlsx')

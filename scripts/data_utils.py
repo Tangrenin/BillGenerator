@@ -58,7 +58,7 @@ def month_index(month):
 
 def available_months(year):
     """
-    goes into the file system to see what .ods files exist in the directory for the given year
+    goes into the file system to see what .xlsx/.ods files exist in the directory for the given year
     :param year: -
     :return: a list of the names of the available months in the directory eg. ['Janvier', 'Fevrier']
     The list is empty is no relevant file was found
@@ -83,7 +83,7 @@ def data_extraction(year, month):
     """
     Extracts data from odt sheets and returns useful dataframe
     We assume the following directory setup : [path_to_data]/[year]
-    and the data files to be named : [month_number]-Cours[month].ods
+    and the data files to be named : [month_number]-Cours[month].xlsx (or ods)
     for exemple we'd have HeuresDeCours/2021/3-CoursMars.odt
     :param month: -
     :param year: -
@@ -122,6 +122,8 @@ def client_extraction():
     :return: a pandas database containing students name, surname, address and sex
     """
     file_path = Path(f"{path_to_data}Infos_élèves.ods")
+    if not file_path.is_file():
+        file_path = Path(f"{path_to_data}Infos_élèves.xlsx")
     df = pd.read_excel(file_path)
     # Cleaning the dataframe of its empty rows
     df.dropna(axis=0, how='all', inplace=True)
